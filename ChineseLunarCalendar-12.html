@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>中巴农历万年历 - 移动自适应版</title>
+    <style>
+        :root {
+            --primary-bg: #f4f7f6;
+            --header-gradient: linear-gradient(135deg, #1b5e20 0%, #2e7d32 100%);
+            --accent-yellow: #fff176;
+            --china-red: #e53935;
+            --brazil-blue: #1976d2;
+        }
+
+        body { 
+            background: var(--primary-bg); 
+            font-family: -apple-system, system-ui, "Segoe UI", Roboto, sans-serif; 
+            display: flex; justify-content: center; padding: 10px; margin: 0;
+        }
+
+        .calendar-box { 
+            background: #fff; width: 100%; max-width: 550px; border-radius: 12px; 
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1); overflow: hidden; position: relative;
+        }
+
+        .header { background: var(--header-gradient); color: #fff; padding: 15px 10px; text-align: center; }
+        .title-main { font-size: 20px; color: gold; font-weight: bold; margin: 0; }
+        .title-sub { font-size: 11px; color: #a5d6a7; margin-bottom: 8px; }
+
+        .h-row { margin: 5px 0; }
+	/* 修正下拉选择框在展开和选中时的视觉问题 */
+	.h-row select {
+	    background: rgba(255, 255, 255, 0.2); /* 默认背景略透出深色背景 */
+	    color: #ffffff; /* 默认文字颜色 */
+	}
+
+	/* 当鼠标悬停或下拉框获得焦点时，变为黑字白底 */
+	.h-row select:focus, 
+	.h-row select:hover {
+	    background: #ffffff;
+	    color: #000000;
+	}
+
+	/* 重点：强制下拉菜单内的选项（Option）始终为黑字白底 */
+	.h-row select option {
+	    background-color: #ffffff;
+	    color: #000000;
+	}
+        .gz-info { font-size: 16px; color: var(--accent-yellow); font-weight: bold; min-height: 24px; }
+
+        table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+        th { background: #fafafa; color: #666; font-size: 11px; height: 35px; border-bottom: 1px solid #eee; }
+        
+        td { 
+            height: 75px; border: 0.5px solid #f5f5f5; text-align: center; 
+            vertical-align: top; padding: 5px 2px; cursor: pointer;
+        }
+        
+        td:hover { background-color: #f1f8e9; }
+        td:nth-child(1) .s-num, td:nth-child(7) .s-num { color: var(--china-red); }
+        .today { background: #fffde7 !important; border: 1.5px solid #fbc02d !important; }
+
+        .s-num { font-size: 20px; font-weight: 800; display: block; color: #333; }
+	/* 农历文字基础样式 - 增强对比度 */
+	.l-txt {
+	    font-size: 0.85rem;
+	    color: #333;           /* 从原来的灰色改为深黑色，对比度显著提升 */
+	    font-weight: 500;
+	    margin-top: 2px;
+	    display: block;
+	}
+
+	/* 突出显示节日和节气 */
+	.l-txt.is-term, .l-txt.is-festival {
+	    color: #d00;        /* 使用醒目的红色标注节日和节气 */
+	    font-weight: bold;
+	}
+
+	/* 突出显示每月初一（月份名） */
+	.l-txt.is-month {
+	    color: #0056b3;        /* 使用深蓝色标注月份名，方便区分月首 */
+	    font-weight: bold;
+	}
+
+	/* 针对手机端进一步优化 */
+	@media (max-width: 600px) {
+	    .s-num { font-size: 1.2rem; font-weight: bold; } /* 公历日期加粗 */
+	    .l-txt { font-size: 0.75rem; }
+	}  
+	/* 在 style 标签中添加 */
+	.h-tag.tag-china {
+	    background-color: #fdf2f2; /* 给中国节日加个极淡的红底 */
+	    border: 1px solid #e63946;  /* 红色边框 */
+	    color: #e63946;            /* 红色文字 */
+	    padding: 1px 4px;
+	    border-radius: 3px;
+	    font-weight: bold;         /* 加粗 */
+	}
+        .h-container { display: flex; flex-direction: column; align-items: center; gap: 2px; margin-top: 3px; }
+        .h-tag { 
+            font-size: 9px; padding: 0px 4px; border-radius: 4px; max-width: 95%; 
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #fff; font-weight: bold;
+        }
+        .tag-china { background: var(--china-red); }
+        .tag-brazil { background: var(--brazil-blue); }
+
+        .btn-bar { padding: 10px; display: flex; justify-content: space-between; background: #fafafa; border-top: 1px solid #eee; }
+        button { padding: 6px 10px; font-size: 12px; cursor: pointer; border: 1px solid #ddd; border-radius: 6px; background: #fff; }
+
+        #tooltip { 
+            position: fixed; z-index: 1000; visibility: hidden; background: rgba(0, 0, 0, 0.9); 
+            color: #fff; padding: 10px; font-size: 12px; border-radius: 8px; pointer-events: none; max-width: 180px;
+        }
+        .tt-gz { color: #e63946; font-weight: bold; border-top: 1px solid #eee; margin-top: 5px; padding-top: 5px; }
+        .tt-main { font-size: 1.1rem; margin-bottom: 5px; }
+        .tt-cn { color: #ff8a80; }
+        .tt-br { color: #82b1ff; }
+
+        /* Modal About */
+        .modal-overlay {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.6); display: none; justify-content: center; align-items: center; z-index: 2000;
+            backdrop-filter: blur(4px);
+        }
+        .modal-content {
+            background: white; width: 85%; border-radius: 12px; padding: 20px; position: relative;
+        }
+        .close-btn { position: absolute; top: 10px; right: 15px; font-size: 24px; color: #999; cursor: pointer; }
+    </style>
+</head>
+<body onkeydown="handleKeyDown(event)">
+
+<div id="tooltip"></div>
+
+<div id="aboutModal" class="modal-overlay" onclick="closeAbout()">
+    <div class="modal-content" onclick="event.stopPropagation()">
+        <span class="close-btn" onclick="closeAbout()">&times;</span>
+        <h3 style="color: #1b5e20; margin-top: 0;">程序信息</h3>
+        <p style="font-size: 13px;"><strong>名称：</strong> 中国农历万年历（含中巴主要节假日）</p>
+        <p style="font-size: 13px;"><strong>版本：</strong> v1.5.3</p>
+        <p style="font-size: 13px;"><strong>更新：</strong> 1.优化手机端适配，移除外部JS依赖。<br>
+        		2.手动添加2026—2050年的中国传统中农历节假日数据。（2026-2-20）<br>
+        		3.将中国传统中农历节假日的计算方式由“手动配置”改为“自动计算”。（2026-2-20）<br>
+        		4.增加了“寒食节”的计算。  (2026-2-20)<br>
+        		5.增加了“三九天“和”三伏天“的计算。(2026-2-20)<br>
+        		6.解决了农历闰月计算错误的问题。(2026-2-22)<br>
+        		7.年份选择从1901年开始，解决了1900年1月农历显示出现“NaN”的问题。(2026-2-22)<br>
+        		8.修改了农历显示的对比度，方便手机端阅看；解决了“九九”不显示的错误；为中国农历节日显示加了红色边框。(2026-2-22)<br>
+        		9.增加了悬停时显示“年月日”的干支显示，“年月日时”的组合俗称“生辰八字”；解决了“月柱”显示错误的问题。(2026-2-22)
+        		
+        </p>
+        <p style="font-size: 11px; color: #999; text-align: center; border-top: 1px solid #eee; padding-top: 10px;">© 2026 Gemini 协作开发</p>
+    </div>
+</div>
+
+<div class="calendar-box">
+    <div class="header">
+        <p class="title-main">中国农历万年历</p>
+        <p class="title-sub">(中巴节假日自适应版)</p>
+        <div class="h-row">
+            <select id="ySel" onchange="draw()"></select> 年 
+            <select id="mSel" onchange="draw()"></select> 月
+        </div>
+        <div id="gzYearInfo" class="gz-info"></div>
+        <div class="h-row" style="font-size: 12px; opacity: 0.8;">
+         属相切换标准：
+            <select id="animalMode" onchange="draw()" style="font-size: 11px;">
+                <option value="LUNAR" selected>按春节(正月初一)</option>
+                <option value="TERM" >按立春(民俗)</option>
+            </select>
+        </div>
+    </div>
+
+    <table>
+        <thead><tr><th>日</th><th>一</th><th>二</th><th>三</th><th>四</th><th>五</th><th>六</th></tr></thead>
+        <tbody id="calBody"></tbody>
+    </table>
+
+    <div class="btn-bar">
+        <button onclick="showAbout()">About</button>
+        <div style="display:flex; gap: 5px;">
+            <button onclick="changeDate('YU')">上年</button>
+            <button onclick="changeDate('MU')">上月</button>
+            <button style="background:#2e7d32;color:#fff" onclick="goToday()">今天</button>
+            <button onclick="changeDate('MD')">下月</button>
+            <button onclick="changeDate('YD')">下年</button>
+        </div>
+    </div>
+</div>
+
+<script>
+// 请填入您的数据
+var lunarInfo = [0x04bd8,0x04ae0,0x0a570,0x054d5,0x0d260,0x0d950,0x16554,0x056a0,0x09ad0,0x055d2,0x04ae0,0x0a5b6,0x0a4d0,0x0d250,0x1d255,0x0b540,0x0d6a0,0x0ada2,0x095b0,0x14977,0x04970,0x0a4b0,0x0b4b5,0x06a50,0x06d40,0x1ab54,0x02b60,0x09570,0x052f2,0x04970,0x06566,0x0d4a0,0x0ea50,0x06e95,0x05ad0,0x02b60,0x186e3,0x092e0,0x1c8d7,0x0c950,0x0d4a0,0x1d8a6,0x0b550,0x056a0,0x1a5b4,0x025d0,0x092d0,0x0d2b2,0x0a950,0x0b557,0x06ca0,0x0b550,0x15355,0x04da0,0x0a5b0,0x14573,0x052b0,0x0a9a8,0x0e950,0x06aa0,0x0aea6,0x0ab50,0x04b60,0x0aae4,0x0a570,0x05260,0x0f263,0x0d950,0x05b57,0x056a0,0x096d0,0x04dd5,0x04ad0,0x0a4d0,0x0d4d4,0x0d250,0x0d558,0x0b540,0x0b6a0,0x195a6,0x095b0,0x049b0,0x0a974,0x0a4b0,0x0b27a,0x06a50,0x06d40,0x0af46,0x0ab60,0x09570,0x04af5,0x04970,0x064b0,0x074a3,0x0ea50,0x06b58,0x055c0,0x0ab60,0x096d5,0x092e0,0x0c960,0x0d954,0x0d4a0,0x0da50,0x07552,0x056a0,0x0abb7,0x025d0,0x092d0,0x0cab5,0x0a950,0x0b4a0,0x0baa4,0x0ad50,0x055d9,0x04ba0,0x0a5b0,0x15176,0x052b0,0x0a930,0x07954,0x06aa0,0x0ad50,0x05b52,0x04b60,0x0a6e6,0x0a4e0,0x0d260,0x0ea65,0x0d530,0x05aa0,0x076a3,0x096d0,0x04bd7,0x04ad0,0x0a4d0,0x1d0b6,0x0d250,0x0d520,0x0dd45,0x0b5a0,0x056d0,0x055b2,0x049b0,0x0a577,0x0a4b0,0x0aa50,0x1b255,0x06d20,0x0ada0,0x14b63];
+
+var solarTerm = ["小寒","大寒","立春","雨水","惊蛰","春分","清明","谷雨","立夏","小满","芒种","夏至","小暑","大暑","立秋","处暑","白露","秋分","寒露","霜降","立冬","小雪","大雪","冬至"];
+var sTermInfo = [0,21208,42467,63836,85337,107014,128867,150921,173149,195551,218072,240693,263343,285989,308563,331033,353350,375494,397447,419210,440795,462224,483532,504758];
+
+var holidayDB = {
+    "中国": { 
+        css: "tag-china", prefix: "中", 
+        fixed: { "01-01":"元旦", "02-18":"LWB🎂", "03-08":"妇女节", "05-01":"劳动节", "05-04":"青年节", "06-01":"儿童节", "06-08":"ZXJ🎂", "07-01":"建党节", "08-01":"建军节","09-10":"教师节","10-01":"国庆节", "10-04":"QQ🎂","10-08":"ZZ🎂","12-12":"ZMM🎂" },
+        variable: {} 
+    },
+    
+    "巴西": { 
+        css: "tag-brazil", prefix: "巴", 
+        fixed: { "01-01":"新年", "04-21":"蒂拉登特斯", "05-01":"劳动节", "09-07":"独立日", "10-12":"圣母日", "11-02":"万灵节", "11-15":"共和国日", "12-25":"圣诞节" },
+        variable: {	"2026": { "02-17":"狂欢节", "04-03":"受难日", "04-05":"复活节", "06-04":"圣体节" } ,
+				"2027": { "02-09":"狂欢节", "03-26":"受难日", "03-28":"复活节", "05-27":"圣体节" },
+				"2028": { "02-29":"狂欢节", "04-14":"受难日", "04-16":"复活节", "06-15":"圣体节" },
+				"2029": { "02-13":"狂欢节", "03-30":"受难日", "04-01":"复活节", "05-31":"圣体节" },
+				"2030": { "03-05":"狂欢节", "04-19":"受难日", "04-21":"复活节", "06-20":"圣体节" },
+				"2031": { "02-25":"狂欢节", "04-11":"受难日", "04-13":"复活节", "06-12":"圣体节" },
+				"2032": { "02-10":"狂欢节", "03-26":"受难日", "03-28":"复活节", "05-27":"圣体节" },
+				"2033": { "03-01":"狂欢节", "04-15":"受难日", "04-17":"复活节", "06-16":"圣体节" },
+				"2034": { "02-21":"狂欢节", "04-07":"受难日", "04-09":"复活节", "06-08":"圣体节" },
+				"2035": { "02-06":"狂欢节", "03-23":"受难日", "03-25":"复活节", "05-24":"圣体节" },
+				"2036": { "02-26":"狂欢节", "04-11":"受难日", "04-13":"复活节", "06-12":"圣体节" }     } 
+    }
+};
+// const LUNAR_HOLIDAYS = {"1-1": "春节",    "1-15": "元宵节",    "2-2": "龙抬头",    "3-3": "上巳节",    "5-5": "端午节",    "7-7": "七夕节",    "7-15": "中元节",    "8-15": "中秋节",    "9-9": "重阳节",    "10-1": "寒衣节",    "10-15": "下元节",    "12-8": "腊八节",	"12-14": "Yuan生日🎂" };
+var Gan = ["甲","乙","丙","丁","戊","己","庚","辛","壬","癸"], Zhi = ["子","丑","寅","卯","辰","巳","午","未","申","酉","戌","亥"], Animals = ["鼠","牛","虎","兔","龙","蛇","马","羊","猴","鸡","狗","猪"];
+var animalEmoji = { "鼠":"🐭", "牛":"🐮", "虎":"🐯", "兔":"🐇", "龙":"🐉", "蛇":"🐍", "马":"🐴", "羊":"🐑", "猴":"🐵", "鸡":"🐓", "狗":"🐶", "猪":"🐷" };
+var nStr1 = ['日','一','二','三','四','五','六','七','八','九','十'], nStr2 = ['初','十','廿','卅'], nStr3 = ['正','二','三','四','五','六','七','八','九','十','冬','腊'];
+
+function showAbout() { document.getElementById('aboutModal').style.display = 'flex'; }
+function closeAbout() { document.getElementById('aboutModal').style.display = 'none'; }
+
+function lYearDays(y) { var i, sum = 348; for(i=0x8000; i>0x8; i>>=1) sum += (lunarInfo[y-1900] & i)? 1: 0; return(sum+leapDays(y)); }
+function leapDays(y) { if(leapMonth(y)) return((lunarInfo[y-1900] & 0x10000)? 30: 29); return(0); }
+function leapMonth(y) { return(lunarInfo[y-1900] & 0xf); }
+function monthDays(y,m) { return( (lunarInfo[y-1900] & (0x10000>>m))? 30: 29 ); }
+
+//====================================== 修正后的 Lunar 类
+function Lunar(objDate) {
+var i, leap = 0, temp = 0;
+    // 1900年1月31日是农历起点
+    var baseDate = Date.UTC(1900, 0, 31);
+    var targetDate = Date.UTC(objDate.getFullYear(), objDate.getMonth(), objDate.getDate());
+    var offset = (targetDate - baseDate) / 86400000;
+    // 拦截 1901 年以前或超出范围的日期
+    if (offset < 0 || objDate.getFullYear() < 1901) {
+        this.invalid = true;
+        return;
+    }
+    // 逐年扣减
+    for (i = 1900; i < 2050 && offset > 0; i++) {
+        temp = lYearDays(i);
+        offset -= temp;
+    }
+
+    if (offset < 0) {
+        offset += temp;
+        i--;
+    }
+
+    this.year = i;
+    leap = leapMonth(i); // 判定该年闰哪个月
+    this.isLeap = false;
+
+    // 逐月扣减
+    for (i = 1; i < 13 && offset > 0; i++) {
+        // 判定闰月
+        if (leap > 0 && i == (leap + 1) && this.isLeap == false) {
+            --i;
+            this.isLeap = true;
+            temp = leapDays(this.year);
+        } else {
+            temp = monthDays(this.year, i);
+        }
+
+        // 解除闰月状态
+        if (this.isLeap == true && i == (leap + 1)) this.isLeap = false;
+
+        offset -= temp;
+    }
+
+    // 边界处理：正好在闰月当天的情况
+    if (offset == 0 && leap > 0 && i == leap + 1) {
+        if (this.isLeap) {
+            this.isLeap = false;
+        } else {
+            this.isLeap = true;
+            --i;
+        }
+    }
+
+    if (offset < 0) {
+        offset += temp;
+        --i;
+    }
+
+    this.month = i;
+    this.day = offset + 1;
+}
+
+function getTerm(y, n) { return new Date((31556925974.7 * (y - 1900) + sTermInfo[n] * 60000) + Date.UTC(1900, 0, 6, 2, 5)).getUTCDate(); }
+
+function getGZData(date, mode) {
+    var y = date.getFullYear(); var gzYear = y;
+    var lD = new Lunar(date);
+    if (lD.invalid) return { gz: "---", an: "---", em: "" }; 
+    if (mode === "LUNAR") { gzYear = lD.year; } 
+    else { 
+        var lcDay = getTerm(y, 2); 
+        if (date.getMonth() < 1 || (date.getMonth() == 1 && date.getDate() < lcDay)) gzYear = y - 1;
+    }
+    var g = (gzYear - 3) % 10; var z = (gzYear - 3) % 12;
+    if (g <= 0) g += 10; if (z <= 0) z += 12;
+    var an = Animals[z-1];
+    return { gz: Gan[g-1] + Zhi[z-1], an: an, em: animalEmoji[an] || "" };
+}
+
+// --- 1. 新增：计算每日干支（用于找庚日） ---
+function getGZDay(date) {
+    // 使用 Date.UTC 消除时区导致的 1 天误差（非常重要！）
+    var baseDate = Date.UTC(1900, 0, 31);
+    var targetDate = Date.UTC(date.getFullYear(), date.getMonth(), date.getDate());
+    var offset = Math.round((targetDate - baseDate) / 86400000);
+    
+    // 1900年1月31日是甲辰日(索引40)
+    var gzD = (offset + 40) % 60;
+    if (gzD < 0) gzD += 60;
+    
+    return {
+        t: Gan[gzD % 10], 
+        z: Zhi[gzD % 12], 
+        name: Gan[gzD % 10] + Zhi[gzD % 12]
+    };
+}
+
+// --- 2. 核心绘制函数 v1.5.0 ---
+function draw() {
+    var y = parseInt(document.getElementById('ySel').value);
+    var m = parseInt(document.getElementById('mSel').value);
+    var mode = document.getElementById('animalMode').value;
+    var body = document.getElementById('calBody'); 
+    body.innerHTML = '';
+    
+    // 渲染表头（星期一到星期日）
+    drawHeader();
+    
+    // 1. 基础农历节日配置
+    var lHoliday = {
+        "1-1":"春节", "1-15":"元宵节", "2-2":"龙抬头", "3-3":"上巳节", 
+        "5-5":"端午节", "7-7":"七夕节", "7-15":"中元节", "8-15":"中秋节", 
+        "9-9":"重阳节", "10-1":"寒衣节", "10-15":"下元节", "12-8":"腊八节", "12-14": "Yuan生日🎂"
+    };
+
+    // 获取公历月首星期、当月天数
+    var firstDay = new Date(y, m, 1).getDay();
+    var daysCount = new Date(y, m + 1, 0).getDate();
+    var dateIdx = 1;
+    var today = new Date();
+
+    // 2. 预算本月的两个节气
+    var t1d = getTerm(y, m * 2);     // 本月第一个节气（“节”）
+    var t1n = solarTerm[m * 2];
+    var t2d = getTerm(y, m * 2 + 1); // 本月第二个节气（“中气”）
+    var t2n = solarTerm[m * 2 + 1];
+
+    // 3. 绘制日历行
+    for (var i = 0; i < 6; i++) {
+        var tr = document.createElement('tr');
+        for (var j = 0; j < 7; j++) {
+            var td = document.createElement('td');
+            
+            // 填充日期格
+            if (!((i === 0 && j < firstDay) || dateIdx > daysCount)) {
+                var curDate = new Date(y, m, dateIdx);
+                var lD = new Lunar(curDate); // 农历转换
+                
+                // 今日高亮
+                if (y == today.getFullYear() && m == today.getMonth() && dateIdx == today.getDate()) {
+                    td.className = 'today';
+                }
+                
+                var lDayName = "", showText = "", lClass = "l-txt";
+                
+                if (!lD.invalid) {
+                    // 农历日期名称处理
+                    lDayName = (lD.day == 10 ? "初十" : (lD.day == 20 ? "二十" : (lD.day == 30 ? "三十" : nStr2[Math.floor(lD.day / 10)] + nStr1[lD.day % 10])));
+                    var termName = (dateIdx === t1d) ? t1n : (dateIdx === t2d ? t2n : "");
+                    
+                    // --- 视觉优化：节气红色，初一蓝色，普通黑色 ---
+                    if (termName) { 
+                        showText = termName; 
+                        lClass += " is-term"; 
+                    } else if (lD.day === 1) { 
+                        showText = (lD.isLeap ? "闰" : "") + nStr3[lD.month - 1] + "月"; 
+                        lClass += " is-month"; 
+                    } else { 
+                        showText = lDayName; 
+                    }
+                }
+
+                // --- 节日与特殊纪念日判定 ---
+                var mmdd = (m + 1 < 10 ? '0' : '') + (m + 1) + '-' + (dateIdx < 10 ? '0' : '') + dateIdx;
+                var hHtml = '<div class="h-container">', hLines = { cn:"", br:"" };
+                var lHName = lHoliday[lD.month + "-" + lD.day] || "";
+                
+                // A. 除夕与寒食
+                var tom = new Date(curDate.getTime() + 86400000);
+                var lTom = new Lunar(tom);
+                if(!lTom.invalid && lTom.month == 1 && lTom.day == 1) lHName = "除夕";
+                if (t1n === "清明" && dateIdx + 1 === t1d) lHName = "寒食节";
+
+                // B. 三九天 (补全至 3 月九九)
+                if (m === 11 || m <= 2) {
+                    var ty = (m <= 2) ? y - 1 : y;
+                    var dzDate = new Date(ty, 11, getTerm(ty, 23));
+                    var dDiff = Math.floor((curDate.getTime() - dzDate.getTime()) / 86400000);
+                    if (dDiff >= 0 && dDiff < 81 && dDiff % 9 === 0) {
+                        lHName += (lHName ? " " : "") + nStr1[Math.floor(dDiff / 9) + 1] + "九";
+                    }
+                }
+
+                // C. 三伏天
+                if (m >= 6 && m <= 7) {
+                    var xzDate = new Date(y, 5, getTerm(y, 11)), lqDate = new Date(y, 7, getTerm(y, 14));
+                    var gCount = 0, chufu, zhongfu, mofu, tmp = new Date(xzDate);
+                    for(var k=0; k<50; k++) {
+                        if(getGZDay(tmp).t === "庚") {
+                            gCount++;
+                            if(gCount === 3) chufu = tmp.getTime();
+                            if(gCount === 4) zhongfu = tmp.getTime();
+                        }
+                        if(gCount >= 4) break;
+                        tmp.setDate(tmp.getDate() + 1);
+                    }
+                    tmp = new Date(lqDate);
+                    for(var k=0; k<20; k++) {
+                        if(getGZDay(tmp).t === "庚") { mofu = tmp.getTime(); break; }
+                        tmp.setDate(tmp.setDate() + 1);
+                    }
+                    if(curDate.getTime() === chufu) lHName += (lHName ? " " : "") + "初伏";
+                    if(curDate.getTime() === zhongfu) lHName += (lHName ? " " : "") + "中伏";
+                    if(curDate.getTime() === mofu) lHName += (lHName ? " " : "") + "末伏";
+                }
+
+                if (lHName) { 
+                    hHtml += `<span class="h-tag tag-china">[中] ${lHName}</span>`; 
+                    hLines.cn = `[中] ${lHName}`; 
+                }
+
+                // D. 公历节日 (中/巴)
+                for (var country in holidayDB) {
+                    var hn = holidayDB[country].fixed[mmdd] || (holidayDB[country].variable[y] && holidayDB[country].variable[y][mmdd]);
+                    if (hn) {
+                        hHtml += `<span class="h-tag ${holidayDB[country].css}">[${holidayDB[country].prefix}] ${hn}</span>`;
+                        if(country === "中国") hLines.cn += (hLines.cn ? " / " : "") + `[公] ${hn}`;
+                        else hLines.br = `[巴] ${hn}`;
+                    }
+                }
+
+                // --- E. 干支三柱核心计算 ---
+                // 1. 年柱
+                var gzY = getGZData(curDate, mode).gz; 
+                // 2. 月柱 (基于节气严格切换，解决“己丑”问题的核心)
+                var totalMonths = (y - 1900) * 12 + m;
+                var monthGZIdx = totalMonths + 12; 
+                if (dateIdx >= t1d) { monthGZIdx++; } // 过了本月“节”则进入下月柱
+                var gzM = Gan[monthGZIdx % 10] + Zhi[monthGZIdx % 12];
+                // 3. 日柱
+                var gzD = getGZDay(curDate).name; 
+
+                // --- 渲染 HTML ---
+                hHtml += '</div>';
+                td.innerHTML = `<span class="s-num">${dateIdx}</span><span class="${lClass}">${showText}</span>${hHtml}`;
+                
+                // --- F. 交互：Tooltip 提示 ---
+                td.onmouseover = (function(info, isValid, hl){
+                    return function(e) {
+                        var tt = document.getElementById('tooltip');
+                        if (!isValid) return;
+                        var hPart = (hl.cn ? `<div class="tt-cn">${hl.cn}</div>` : "") + (hl.br ? `<div class="tt-br">${hl.br}</div>` : "");
+                        tt.innerHTML = `<div class="tt-main"><strong>${info.s}</strong><br>${info.l}</div>` + 
+                                       `<div class="tt-gz">干支：${info.gy}年 ${info.gm}月 ${info.gd}日</div>` +
+                                       `<div class="tt-an">生肖：【${info.an}${info.em}】</div>${hPart}`;
+                        tt.style.visibility = 'visible'; 
+                        updateTooltipPos(e);
+                    };
+                })({ 
+                    s: `${y}年${m+1}月${dateIdx}日`, 
+                    l: `农历 ${(lD.isLeap?"闰":"")+nStr3[lD.month-1]}月${lDayName}`, 
+                    gy: gzY, gm: gzM, gd: gzD, 
+                    an: getGZData(curDate, mode).an, 
+                    em: getGZData(curDate, mode).em 
+                }, !lD.invalid, hLines);
+
+                td.onmousemove = updateTooltipPos;
+                td.onmouseout = function(){ 
+                    document.getElementById('tooltip').style.visibility='hidden'; 
+                };
+                
+                dateIdx++;
+            }
+            tr.appendChild(td);
+        }
+        body.appendChild(tr);
+        if (dateIdx > daysCount) break;
+    }
+}
+function updateTooltipPos(e) {
+    var tt = document.getElementById('tooltip');
+    var x = e.clientX + 10, y = e.clientY + 10;
+    if (x + tt.offsetWidth > window.innerWidth) x = e.clientX - tt.offsetWidth - 10;
+    if (y + tt.offsetHeight > window.innerHeight) y = e.clientY - tt.offsetHeight - 10;
+    tt.style.left = x + 'px'; tt.style.top = y + 'px';
+}
+
+function drawHeader() {
+    var ys = document.getElementById('ySel'), ms = document.getElementById('mSel');
+    if(!ys.value) return;
+    var y = parseInt(ys.value), m = parseInt(ms.value), mode = document.getElementById('animalMode').value;
+    var g1 = getGZData(new Date(y, m, 1), mode), g2 = getGZData(new Date(y, m + 1, 0), mode);
+    var infoDom = document.getElementById('gzYearInfo');
+    if (g1.gz !== g2.gz) infoDom.innerHTML = `${g1.gz}【${g1.em}】/ ${g2.gz}【${g2.em}】`;
+    else infoDom.innerText = `${g1.gz}年 【${g1.an}${g1.em}】`;
+}
+
+function changeDate(t) {
+    var ys = document.getElementById('ySel'), ms = document.getElementById('mSel');
+    var y = parseInt(ys.value), m = parseInt(ms.value);
+    
+    if(t == 'YU') y--; 
+    if(t == 'YD') y++;
+    if(t == 'MU') { if(m > 0) m--; else { m = 11; y--; } }
+    if(t == 'MD') { if(m < 11) m++; else { m = 0; y++; } }
+    
+    // 修正判断条件：最小年份限制为 1901
+    if(y >= 1901 && y <= 2050) { 
+        ys.value = y; 
+        ms.value = m; 
+        draw(); 
+    } else {
+        console.log("已到达程序支持的年份下限/上限");
+    }
+}
+function goToday() {
+    var n = new Date();
+    document.getElementById('ySel').value = n.getFullYear();
+    document.getElementById('mSel').value = n.getMonth();
+    draw();
+}
+
+function handleKeyDown(e) {
+    if(e.keyCode == 37) changeDate('MU'); if(e.keyCode == 38) changeDate('YU');
+    if(e.keyCode == 39) changeDate('MD'); if(e.keyCode == 40) changeDate('YD');
+}
+
+window.onload = function(){
+    var ys = document.getElementById('ySel'), ms = document.getElementById('mSel');
+    for(var i=1901; i<=2050; i++) ys.add(new Option(i, i));
+    for(var i=0; i<12; i++) ms.add(new Option(i+1, i));
+    goToday();
+};
+</script>
+</body>
+</html>
