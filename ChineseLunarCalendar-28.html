@@ -4,7 +4,7 @@
 <!-- （一）head区域主要包括“字符编码、标题、CSS等 -->
 <head>
     <meta charset="UTF-8"> <!-- 字符编码 -->
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"> <!-- 移动端适配 -->
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
    
 	<title>中国农历万年历（包含中国/巴西/美国主要节假日）</title> <!-- 浏览器标签页标题 -->
     <!-- style部分是内部CSS,如用外部CSS文件，则类似<link rel="stylesheet" href="style.css"> -->
@@ -17,11 +17,13 @@
             --brazil-blue: #1976d2;
         }
 
-        body { 
-            background: var(--primary-bg); 
-            font-family: -apple-system, system-ui, "Segoe UI", Roboto, sans-serif; 
-        	justify-content: center; padding: 10px; margin: 0;
-        }
+		body{
+		max-width:900px;
+		margin:auto;
+		padding:10px;
+		font-size:16px;
+		font-family:Arial, Helvetica, sans-serif;
+		}
 
 		.calendar-box { 
 			background: #fff; 
@@ -60,22 +62,15 @@
 		}
         .gz-info { font-size: 16px; color: var(--accent-yellow); font-weight: bold; min-height: 24px; }
 		/* 2. 表格布局逻辑 */
-		table {
-			width: 100%;
-			border-collapse: collapse;
-			table-layout: fixed; /* 强制列宽均分，保证整齐 */
+		table{
+		width:100%;
+		max-width:900px;
+		border-collapse:collapse;
 		}
 
-        th { background: #fafafa; color: #666; font-size: 11px; height: 35px; border-bottom: 1px solid #eee; }
-        
-
-		/* 3. 单元格样式适配 */
-		td {
-			height: 80px;        /* 默认手机端高度 */
-			border: 1px solid #eee;
-			vertical-align: top;
-			padding: 5px;
-			position: relative;
+		td,th{
+		padding:6px;
+		text-align:center;
 		}
 
         td:hover { background-color: #f1f8e9; }
@@ -255,8 +250,17 @@
 		.tt-us { color: #40a9ff; font-weight: bold; } /* 亮天蓝 */
 		.tt-an { color: #ddd; font-size: 1.2em; }      /* 浅灰生肖 */
 		.btn-bar { padding: 10px; display: flex; justify-content: space-between; background: #fafafa; border-top: 1px solid #eee; }
-        button { padding: 6px 10px; font-size: 12px; cursor: pointer; border: 1px solid #ddd; border-radius: 6px; background: #fff; }
+		
+		select,input,button{
+		font-size:16px;
+		padding:4px;
+		}
 
+		img{
+		max-width:100%;
+		height:auto;
+		}
+		
         /* Modal About */
         .modal-overlay {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
@@ -271,7 +275,7 @@
 </head>
 
 <!-- （二）body区域主要包括“页面内容、JavaScript脚本”两部分 -->
-<body onkeydown="handleKeyDown(event)">
+<body style="margin:auto;onkeydown="handleKeyDown(event)">
 
 	<div id="tooltip"></div>
 
