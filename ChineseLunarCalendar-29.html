@@ -70,7 +70,9 @@
 		}
 
         td:hover { background-color: #f1f8e9; }
-        td:nth-child(1) .s-num, td:nth-child(7) .s-num { color: var(--china-red); }
+		/*将第1列和第7列日期显示为红色，不适应周一为首的情况，故注释掉*/
+        /* td:nth-child(1) .s-num, td:nth-child(7) .s-num { color: var(--china-red); } */
+
 		/* 今日高亮样式 */
 		.today {
 		    background-color: rgba(255, 235, 59, 0.15) !important; /* 淡淡的黄色背景 */
