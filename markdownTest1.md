@@ -16,8 +16,13 @@
 
 ### 1. 克隆项目
 
-```bash
-git clone https://github.com/yourname/demo.git
+**加粗**
+*斜体*
+***加粗+斜体***
+~~删除线~~
+
+
+[百度](https://www.baidu.com)
 
 | 姓名 | 年龄 |
 |------|------|
@@ -25,7 +30,3 @@ git clone https://github.com/yourname/demo.git
 | 李四 | 20   |
 
 
-**加粗**
-*斜体*
-***加粗+斜体***
-~~删除线~~
