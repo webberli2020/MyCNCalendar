@@ -1,2 +1,2 @@
-# MyCNCalendar
-中国农历万年历
+# My Coding Learning
+学习编程
