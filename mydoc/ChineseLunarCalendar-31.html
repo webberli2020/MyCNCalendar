@@ -545,7 +545,7 @@
 						// 规则：忌日/🕯 权重最高(0)，生日/🎂 权重次之(1)，普通节日权重最低(2)
 						const getWeight = (text) => {
 							if (text.includes("忌日") || text.includes("🕯")) return 0;
-							if (text.includes("生日") || text.includes("🎂") || text.includes("LWB") || text.includes("ZXJ")) return 1;
+							if (text.includes("🎂") ) return 1;
 							return 2;
 						};
 
@@ -574,7 +574,7 @@
 								let cls = cn.css; // 默认中国红
 								if (item.tt.includes("忌日") || item.tt.includes("🕯")) {
 									cls = "tag-blackfriday";
-								} else if item.tt.includes("🎂")  { 
+								} else if (item.tt.includes("🎂"))  { 
 									cls = "tag-family";
 								}
 								// 追加独立的 HTML 标签
